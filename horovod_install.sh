@@ -88,16 +88,17 @@ if [ ${#OpenMPI} -gt 2 ]; then
         cd openmpi-${OpenMPI}
         ./configure --enable-orterun-prefix-by-default
         [[ $? -eq 0 ]] && make -j $(nproc) all
-        echo "[DEBUG] executed make"
         [[ $? -eq 0 ]] && make install
-        echo "[DEBUG] executed make install"
         [[ $? -eq 0 ]] && ldconfig
-        echo "[DEBUG] executed ldconfig"
         [[ $? -eq 0 ]] && rm -rf /tmp/openmpi
-        echo "[DEBUG] OpenMPI should be installed"
+        echo "[DEBUG] Finish OpenMPI installation"
     fi
 fi
 
+# go back to the script folder
+cd ${SCRIPT_PATH}
+
+# install HOROVOD if asked for
 if [ ${#HOROVOD} -gt 2 ]; then
     if [ ${HOROVOD}=="latest" ]; then
         HOROVOD_PYPI="horovod"
@@ -111,8 +112,10 @@ if [ ${#HOROVOD} -gt 2 ]; then
     ldconfig
 fi
 
-# command to execute at the end
+# go back to the script folder
 cd ${SCRIPT_PATH}
+
+# command to execute at the end
 if [ $? -eq 0 ]; then
 /bin/bash<<EOF
 ${params}

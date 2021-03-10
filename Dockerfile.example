@@ -1,0 +1,53 @@
+# Dockerfile may have following Arguments: image, tag
+# image - base image to start building from
+# tag - tag for the Base image, (e.g. 1.10.0-py3 for tensorflow)
+# branch - repository branch to clone (horovod_install)
+#
+# To build the image:
+# $ docker build -t <dockerhub_user>/<dockerhub_repo> --build-arg arg=value .
+# or using default args:
+# $ docker build -t <dockerhub_user>/<dockerhub_repo> .
+
+ARG image=tensorflow/tensorflow
+ARG tag=2.0.0-gpu-py3
+
+# Base image, e.g. tensorflow/tensorflow:2.0.0-py3
+FROM ${image}:${tag}
+
+# renew 'image' and 'tag' to access during the build
+ARG image
+ARG tag
+
+# What user branch to clone [!]
+ARG branch=master
+
+# Install ubuntu updates and stuff needed to build horovod later
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
+    apt-get install -y --no-install-recommends \
+         cmake \
+         git \
+         libnccl2 \
+         libnccl-dev \
+         python3-pip \
+         python3-wheel \
+         wget && \ 
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /root/.cache/pip/* && \
+    rm -rf /tmp/* && \
+    python3 --version && \
+    pip3 --version
+
+
+# Set LANG environment
+ENV LANG C.UTF-8
+
+WORKDIR=/
+
+RUN git clone -b $branch https://github.com/vykozlov/horovod_install && \
+env PATH=$PATH:/horovod_install
+
+ENTRYPOINT=/horovod_install/horovod_install
+
+CMD["-h"]
+
