@@ -11,7 +11,14 @@
 
 ###  INFO  ###
 # Script to check MPI and HOROVOD environment settings and
-# in case provided, install MPI library and Horovod framework
+# if provided, install MPI and Horovod libraries
+#
+# It is required that:
+# cmake
+# wget
+# libnccl2 and libnccl-dev
+# are installed.
+# cuda, python3, pip3 are supposed to be installed as well.
 ###
 
 ##### USAGEMESSAGE #####
@@ -30,19 +37,25 @@ OpenMPI_DEFAULT=4.1.0
 
 ##### PARSE SCRIPT FLAGS #####
 arr=("$@")
-if [ $# -eq 0 ]; then 
+if [[ $# -eq 0 ]]; then 
 # just print the help message
     shopt -s xpg_echo
     echo $USAGEMESSAGE
-elif [ $1 == "-h" ] || [ $1 == "--help" ]; then 
+elif [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then 
     shopt -s xpg_echo
     echo $USAGEMESSAGE
     exit 1
 else 
     # read options as parameters (1)
-    cmd=${arr[0]} # command
-    params=${arr[@]:1}
+    #cmd=${arr[0]} # command
+    #params=${arr[@]:1}
+    params="$*"
 fi
+
+# Store path from where the script called
+# This script's full path
+# https://unix.stackexchange.com/questions/17499/get-path-of-current-script-when-executed-through-a-symlink/17500
+SCRIPT_PATH="$(dirname "$(readlink -f "$0")")"
 
 # check if HOROVOD is set
 # if so, also set OpenMPI to 4.1.0
@@ -54,18 +67,31 @@ if [ ${#HOROVOD} -gt 2 ]; then
 fi
 
 if [ ${#OpenMPI} -gt 2 ]; then
-    # deduce the main OpenMPI version
-    OpenMPI_MainVer=$(echo ${OpenMPI} | cut -d\. -f1,2)
-    mkdir /tmp/openmpi && \
-    cd /tmp/openmpi && \
-    wget "https://www.open-mpi.org/software/ompi/v${OpenMPI_MainVer}/downloads/openmpi-${OpenMPI}.tar.gz" && \
-    tar zxf openmpi-${OpenMPI}.tar.gz && \
-    cd openmpi-${OpenMPI} && \
-    ./configure --enable-orterun-prefix-by-default && \
-    make -j $(nproc) all && \
-    make install && \
-    ldconfig && \
-    rm -rf /tmp/openmpi    
+    # check if OpenMPI is already installed
+    OpenMPI_Install=true
+    if command mpirun --version 2>/dev/null; then
+        OpenMPI_InstalledVer=$(mpirun --version | head -1 | cut -d' ' -f4)
+        # check that requested and installed versions match
+        # if so, no action to install again.
+        if [ ${OpenMPI}=="${OpenMPI_InstalledVer}" ]; then
+            OpenMPI_Install=false
+        fi
+    fi
+    # install OpenMPI, if not installed or versions do not match
+    if $OpenMPI_Install; then
+        # deduce the main OpenMPI version
+        OpenMPI_MainVer=$(echo ${OpenMPI} | cut -d\. -f1,2)
+        mkdir /tmp/openmpi && \
+        cd /tmp/openmpi && \
+        wget "https://www.open-mpi.org/software/ompi/v${OpenMPI_MainVer}/downloads/openmpi-${OpenMPI}.tar.gz" && \
+        tar zxf openmpi-${OpenMPI}.tar.gz && \
+        cd openmpi-${OpenMPI} && \
+        ./configure --enable-orterun-prefix-by-default && \
+        make -j $(nproc) all && \
+        make install && \
+        ldconfig && \
+        rm -rf /tmp/openmpi
+    fi
 fi
 
 if [ ${#HOROVOD} -gt 2 ]; then
@@ -75,10 +101,14 @@ if [ ${#HOROVOD} -gt 2 ]; then
         HOROVOD_PYPI="horovod==${HOROVOD}"
     fi
     # Install Horovod, temporarily using CUDA stubs (Ubuntu path!)
+    # pip3 also checks, if horovod is already installed
     ldconfig /usr/local/cuda/targets/x86_64-linux/lib/stubs && \
     HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 pip3 install --no-cache-dir ${HOROVOD_PYPI} && \
     ldconfig
 fi
 
 # command to execute at the end
-${cmd} ${params[@]}
+cd ${SCRIPT_PATH}
+/bin/bash<<EOF
+${params}
+EOF
