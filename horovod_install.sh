@@ -15,6 +15,7 @@
 #
 # It is required that:
 # cmake
+# git
 # wget
 # libnccl2 and libnccl-dev
 # are installed.
@@ -81,16 +82,19 @@ if [ ${#OpenMPI} -gt 2 ]; then
     if $OpenMPI_Install; then
         # deduce the main OpenMPI version
         OpenMPI_MainVer=$(echo ${OpenMPI} | cut -d\. -f1,2)
-        mkdir /tmp/openmpi && \
-        cd /tmp/openmpi && \
-        wget "https://www.open-mpi.org/software/ompi/v${OpenMPI_MainVer}/downloads/openmpi-${OpenMPI}.tar.gz" && \
-        tar zxf openmpi-${OpenMPI}.tar.gz && \
-        cd openmpi-${OpenMPI} && \
-        ./configure --enable-orterun-prefix-by-default && \
-        make -j $(nproc) all && \
-        make install && \
-        ldconfig && \
-        rm -rf /tmp/openmpi
+        mkdir /tmp/openmpi && cd /tmp/openmpi && \
+        wget "https://www.open-mpi.org/software/ompi/v${OpenMPI_MainVer}/downloads/openmpi-${OpenMPI}.tar.gz"
+        tar zxf openmpi-${OpenMPI}.tar.gz
+        cd openmpi-${OpenMPI}
+        ./configure --enable-orterun-prefix-by-default
+        [[ $? -eq 0 ]] && make -j $(nproc) all
+        echo "[DEBUG] executed make"
+        [[ $? -eq 0 ]] && make install
+        echo "[DEBUG] executed make install"
+        [[ $? -eq 0 ]] && ldconfig
+        echo "[DEBUG] executed ldconfig"
+        [[ $? -eq 0 ]] && rm -rf /tmp/openmpi
+        echo "[DEBUG] OpenMPI should be installed"
     fi
 fi
 
@@ -109,6 +113,11 @@ fi
 
 # command to execute at the end
 cd ${SCRIPT_PATH}
+if [ $? -eq 0 ]; then
 /bin/bash<<EOF
 ${params}
 EOF
+else
+    echo "[ERROR] Something went wrong. Please, check error messages above"
+fi
+
