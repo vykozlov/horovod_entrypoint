@@ -48,8 +48,6 @@ elif [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then
     exit 1
 else 
     # read options as parameters (1)
-    #cmd=${arr[0]} # command
-    #params=${arr[@]:1}
     params="$*"
 fi
 
@@ -108,7 +106,8 @@ if [ ${#HOROVOD} -gt 2 ]; then
     # Install Horovod, temporarily using CUDA stubs (Ubuntu path!)
     # pip3 also checks, if horovod is already installed
     ldconfig /usr/local/cuda/targets/x86_64-linux/lib/stubs && \
-    HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 pip3 install --no-cache-dir ${HOROVOD_PYPI} && \
+    HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 \
+    pip3 install --no-cache-dir ${HOROVOD_PYPI} && \
     ldconfig
 fi
 

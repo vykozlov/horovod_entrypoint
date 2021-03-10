@@ -42,12 +42,12 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
 # Set LANG environment
 ENV LANG C.UTF-8
 
-WORKDIR=/
+WORKDIR /
 
 RUN git clone -b $branch https://github.com/vykozlov/horovod_install && \
 env PATH=$PATH:/horovod_install
 
-ENTRYPOINT=/horovod_install/horovod_install
+ENTRYPOINT ["/horovod_install/horovod_install"]
 
-CMD["-h"]
+CMD ["-h"]
 
