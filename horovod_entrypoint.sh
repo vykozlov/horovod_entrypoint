@@ -84,7 +84,7 @@ if [ ${#OpenMPI} -gt 2 ]; then
         [[ $? -eq 0 ]] && rm -rf /tmp/openmpi
 
         if [ $? -eq 0 ]; then
-            echo "[DEBUG] Finish OpenMPI installation"
+            echo "[DEBUG] Finished OpenMPI installation."
         else
             echo "[ERROR] Something went wrong. Please, check error messages above."
         fi
@@ -107,6 +107,12 @@ if [ ${#HOROVOD} -gt 2 ]; then
     HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 \
     python3 -m pip install --no-cache-dir ${HOROVOD_PYPI} && \
     ldconfig
+
+    if [ $? -eq 0 ]; then
+        echo "[DEBUG] Finished HOROVOD installation."
+    else
+        echo "[ERROR] Something went wrong. Please, check error messages above."
+    fi
 fi
 
 # go back to the script folder
