@@ -89,7 +89,12 @@ if [ ${#OpenMPI} -gt 2 ]; then
         [[ $? -eq 0 ]] && make install
         [[ $? -eq 0 ]] && ldconfig
         [[ $? -eq 0 ]] && rm -rf /tmp/openmpi
-        echo "[DEBUG] Finish OpenMPI installation"
+
+        if [ $? -eq 0 ]; then
+            echo "[DEBUG] Finish OpenMPI installation"
+        else
+            echo "[ERROR] Something went wrong. Please, check error messages above."
+        fi
     fi
 fi
 
@@ -107,7 +112,7 @@ if [ ${#HOROVOD} -gt 2 ]; then
     # pip3 also checks, if horovod is already installed
     ldconfig /usr/local/cuda/targets/x86_64-linux/lib/stubs && \
     HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 \
-    pip3 install --no-cache-dir ${HOROVOD_PYPI} && \
+    python3 -m pip install --no-cache-dir ${HOROVOD_PYPI} && \
     ldconfig
 fi
 
@@ -120,6 +125,13 @@ if [ $? -eq 0 ]; then
 ${params}
 EOF
 else
-    echo "[ERROR] Something went wrong. Please, check error messages above"
+    echo "[ERROR] Something went wrong. Please, check error messages above."
 fi
+
+# might be better to:
+#if [[ $# -eq 0 ]]; then
+#  exec "/bin/bash"
+#else
+#  exec "$@"
+#fi
 
