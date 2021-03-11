@@ -22,7 +22,7 @@
 # cuda, python3, pip3 are supposed to be installed as well.
 ###
 
-##### USAGEMESSAGE #####
+### USAGEMESSAGE ###
 USAGEMESSAGE="Usage: $0 <options>\n
 where <options> are:\n
  \t --help, -h    \t help message (this message) \n
@@ -36,19 +36,11 @@ Once installed, runs <any command>"
 # default OpenMPI version, if only HOROVOD requested
 OpenMPI_DEFAULT=4.1.0
 
-##### PARSE SCRIPT FLAGS #####
-arr=("$@")
-if [[ $# -eq 0 ]]; then 
-# just print the help message
-    shopt -s xpg_echo
-    echo $USAGEMESSAGE
-elif [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then 
+### PARSE SCRIPT FLAGS ###
+if [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then 
     shopt -s xpg_echo
     echo $USAGEMESSAGE
     exit 1
-else 
-    # read options as parameters (1)
-    params="$*"
 fi
 
 # Store path from where the script called
@@ -56,7 +48,7 @@ fi
 # https://unix.stackexchange.com/questions/17499/get-path-of-current-script-when-executed-through-a-symlink/17500
 SCRIPT_PATH="$(dirname "$(readlink -f "$0")")"
 
-# check if HOROVOD is set
+### check if HOROVOD is set ###
 # if so, also set OpenMPI to 4.1.0
 if [ ${#HOROVOD} -gt 2 ]; then
    # check if OpenMPI is also set, if not => default version
@@ -65,6 +57,7 @@ if [ ${#HOROVOD} -gt 2 ]; then
    fi
 fi
 
+### check if OpenMPI is set, install it if so ###
 if [ ${#OpenMPI} -gt 2 ]; then
     # check if OpenMPI is already installed
     OpenMPI_Install=true
@@ -101,7 +94,7 @@ fi
 # go back to the script folder
 cd ${SCRIPT_PATH}
 
-# install HOROVOD if asked for
+### install HOROVOD if asked for ###
 if [ ${#HOROVOD} -gt 2 ]; then
     if [ ${HOROVOD}=="latest" ]; then
         HOROVOD_PYPI="horovod"
@@ -119,19 +112,18 @@ fi
 # go back to the script folder
 cd ${SCRIPT_PATH}
 
-# command to execute at the end
-if [ $? -eq 0 ]; then
-/bin/bash<<EOF
-${params}
-EOF
+### Command to execute at the end ###
+if [[ $# -eq 0 ]]; then
+    exec "/bin/bash"
 else
-    echo "[ERROR] Something went wrong. Please, check error messages above."
+    if [ $? -eq 0 ]; then
+        exec "$@"
+    else
+        echo "[ERROR] Something went wrong. Please, check error messages above."
+   fi
 fi
 
-# might be better to:
-#if [[ $# -eq 0 ]]; then
-#  exec "/bin/bash"
-#else
-#  exec "$@"
-#fi
-
+# other possible way to execute the command?
+#/bin/bash<<EOF
+#$*
+#EOF
