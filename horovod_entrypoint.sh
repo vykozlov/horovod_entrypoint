@@ -122,11 +122,7 @@ cd ${SCRIPT_PATH}
 if [[ $# -eq 0 ]]; then
     exec "/bin/bash"
 else
-    if [ $? -eq 0 ]; then
-        exec "$@"
-    else
-        echo "[ERROR] Something went wrong. Please, check error messages above."
-   fi
+    exec "$@"
 fi
 
 # other possible way to execute the command?
