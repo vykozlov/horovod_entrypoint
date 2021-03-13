@@ -44,7 +44,7 @@ ENV LANG C.UTF-8
 
 WORKDIR /
 
-RUN git clone -b $branch https://github.com/vykozlov/horovod_entrypoint && \
+RUN git clone -b $branch https://github.com/vykozlov/horovod_entrypoint
 ENV PATH="${PATH}:/horovod_entrypoint"
 
 ENTRYPOINT ["/horovod_entrypoint/horovod_entrypoint"]

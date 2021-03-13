@@ -2,7 +2,6 @@
 #
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2018 - 2020 Karlsruhe Institute of Technology - Steinbuch Centre for Computing
 # This code is distributed under the Apache 2.0 License
 # Please, see the LICENSE file
 #
