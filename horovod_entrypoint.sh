@@ -86,7 +86,7 @@ if [ ${#OpenMPI} -gt 2 ]; then
         if [ $? -eq 0 ]; then
             echo "[DEBUG] Finished OpenMPI installation."
         else
-            echo "[ERROR] Something went wrong. Please, check error messages above."
+            echo "[ERROR] OpenMPI install: Something went wrong. Please, check logs."
         fi
     fi
 fi
@@ -111,7 +111,7 @@ if [ ${#HOROVOD} -gt 2 ]; then
     if [ $? -eq 0 ]; then
         echo "[DEBUG] Finished HOROVOD installation."
     else
-        echo "[ERROR] Something went wrong. Please, check error messages above."
+        echo "[ERROR] HOROVOD install: Something went wrong. Please, check logs."
     fi
 fi
 

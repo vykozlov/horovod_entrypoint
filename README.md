@@ -1,4 +1,7 @@
-# horovod_entrypoint
+horovod_entrypoint
+==================
+
+# Description
 wrapper to install horovod and OpenMPI in a docker container. Used as ENTRYPOINT in the Dockerfile.
 
 If one of the following environment setting is provided:
@@ -8,9 +11,15 @@ If one of the following environment setting is provided:
 *  HOROVOD=version (e.g. 0.23.1 or "latest") : install horovod libraries
 
 
-If HOROVOD env is provided but not OpenMPI, the default OpenMPI version (now: 4.1.0) is installed first.
+If `HOROVOD` env is provided but not `OpenMPI`, the default OpenMPI version (now: 4.1.0) is installed first.
 
 Dockerfile.example : is an example of the Dockerfile using horovod_entrypoint.
+
+# Docker usage example
+
+   ```bash
+   docker run -e OpenMPI=4.1.0 -e HOROVOD=latest repo/dockerimage:tag <user_program>
+   ```
 
 # Requirements:
 * The script expects that cuda and python3 are available.
