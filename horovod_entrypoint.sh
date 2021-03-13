@@ -3,7 +3,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (c) 2018 - 2020 Karlsruhe Institute of Technology - Steinbuch Centre for Computing
-# This code is distributed under the MIT License
+# This code is distributed under the Apache 2.0 License
 # Please, see the LICENSE file
 #
 # @author: vykozlov
@@ -22,7 +22,7 @@
 # cuda, python3, pip3 are supposed to be installed as well.
 ###
 
-##### USAGEMESSAGE #####
+### USAGEMESSAGE ###
 USAGEMESSAGE="Usage: $0 <options>\n
 where <options> are:\n
  \t --help, -h    \t help message (this message) \n
@@ -36,19 +36,11 @@ Once installed, runs <any command>"
 # default OpenMPI version, if only HOROVOD requested
 OpenMPI_DEFAULT=4.1.0
 
-##### PARSE SCRIPT FLAGS #####
-arr=("$@")
-if [[ $# -eq 0 ]]; then 
-# just print the help message
-    shopt -s xpg_echo
-    echo $USAGEMESSAGE
-elif [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then 
+### PARSE SCRIPT FLAGS ###
+if [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then 
     shopt -s xpg_echo
     echo $USAGEMESSAGE
     exit 1
-else 
-    # read options as parameters (1)
-    params="$*"
 fi
 
 # Store path from where the script called
@@ -56,7 +48,7 @@ fi
 # https://unix.stackexchange.com/questions/17499/get-path-of-current-script-when-executed-through-a-symlink/17500
 SCRIPT_PATH="$(dirname "$(readlink -f "$0")")"
 
-# check if HOROVOD is set
+### check if HOROVOD is set ###
 # if so, also set OpenMPI to 4.1.0
 if [ ${#HOROVOD} -gt 2 ]; then
    # check if OpenMPI is also set, if not => default version
@@ -65,6 +57,7 @@ if [ ${#HOROVOD} -gt 2 ]; then
    fi
 fi
 
+### check if OpenMPI is set, install it if so ###
 if [ ${#OpenMPI} -gt 2 ]; then
     # check if OpenMPI is already installed
     OpenMPI_Install=true
@@ -89,14 +82,19 @@ if [ ${#OpenMPI} -gt 2 ]; then
         [[ $? -eq 0 ]] && make install
         [[ $? -eq 0 ]] && ldconfig
         [[ $? -eq 0 ]] && rm -rf /tmp/openmpi
-        echo "[DEBUG] Finish OpenMPI installation"
+
+        if [ $? -eq 0 ]; then
+            echo "[DEBUG] Finished OpenMPI installation."
+        else
+            echo "[ERROR] OpenMPI install: Something went wrong. Please, check logs."
+        fi
     fi
 fi
 
 # go back to the script folder
 cd ${SCRIPT_PATH}
 
-# install HOROVOD if asked for
+### install HOROVOD if asked for ###
 if [ ${#HOROVOD} -gt 2 ]; then
     if [ ${HOROVOD}=="latest" ]; then
         HOROVOD_PYPI="horovod"
@@ -107,19 +105,28 @@ if [ ${#HOROVOD} -gt 2 ]; then
     # pip3 also checks, if horovod is already installed
     ldconfig /usr/local/cuda/targets/x86_64-linux/lib/stubs && \
     HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 \
-    pip3 install --no-cache-dir ${HOROVOD_PYPI} && \
+    python3 -m pip install --no-cache-dir ${HOROVOD_PYPI} && \
     ldconfig
+
+    if [ $? -eq 0 ]; then
+        echo "[DEBUG] Finished HOROVOD installation."
+    else
+        echo "[ERROR] HOROVOD install: Something went wrong. Please, check logs."
+    fi
 fi
 
 # go back to the script folder
 cd ${SCRIPT_PATH}
 
-# command to execute at the end
-if [ $? -eq 0 ]; then
-/bin/bash<<EOF
-${params}
-EOF
+### Command to execute at the end ###
+if [[ $# -eq 0 ]]; then
+    exec "/bin/bash"
 else
-    echo "[ERROR] Something went wrong. Please, check error messages above"
+    exec "$@"
 fi
+
+# other possible way to execute the command?
+#/bin/bash<<EOF
+#$*
+#EOF
 
